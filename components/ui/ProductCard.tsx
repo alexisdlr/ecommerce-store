@@ -1,28 +1,43 @@
 "use client";
-import {motion} from 'framer-motion'
+import { motion } from "framer-motion";
 import { Product } from "@/types";
 import Image from "next/image";
 import IconButton from "@/components/ui/IconButton";
 import { Expand, ShoppingCart } from "lucide-react";
 import Currency from "./Currency";
 import { useRouter } from "next/navigation";
-import { variants } from '@/lib/utils';
+import { variants } from "@/lib/utils";
+import usePreviewModal from "@/hooks/usePreviewModal";
+import { MouseEventHandler } from "react";
+import useCart from "@/hooks/useCart";
 
 interface ProductCardProps {
   data: Product;
-  index: number
+  index: number;
 }
 
-const ProductCard = ({ data, index}: ProductCardProps) => {
+const ProductCard = ({ data, index }: ProductCardProps) => {
+  const previewModal = usePreviewModal();
+  const cart = useCart();
+
   const router = useRouter();
   const handleClick = () => {
     router.push(`/product/${data.id}`);
   };
-  
+  const onPreview: MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation();
+
+    previewModal.onOpen(data);
+  };
+  const onAddToCart: MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation();
+
+    cart.addItem(data);
+  };
   return (
     <motion.div
-      initial={'hidden'}
-      whileInView={'visible'}
+      initial={"hidden"}
+      whileInView={"visible"}
       custom={{ delay: (index + 1) * 0.1 }}
       variants={variants}
       viewport={{ once: false }}
@@ -46,15 +61,11 @@ const ProductCard = ({ data, index}: ProductCardProps) => {
                   className="text-gray-600"
                 />
               }
+              onClick={onPreview}
             />
             <IconButton
-              icon={
-                <ShoppingCart
-                  size={20}
-                  onClick={() => {}}
-                  className="text-gray-600"
-                />
-              }
+              icon={<ShoppingCart size={20} className="text-gray-600" />}
+              onClick={onAddToCart}
             />
           </div>
         </div>
@@ -63,7 +74,7 @@ const ProductCard = ({ data, index}: ProductCardProps) => {
         <p className="font-semibold text-lg">{data.name}</p>
         <p className="text-sm text-gray-500">{data.category.name}</p>
       </div>
-      <Currency value={data.price} />
+      <Currency value={Number(data.price)} />
     </motion.div>
   );
 };
